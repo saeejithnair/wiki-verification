@@ -2,6 +2,9 @@
 
 An enhanced frontend for [Grokipedia](https://grokipedia.com) that uses **Grok's web search** to verify Wikipedia-style citations in real-time. Built for the xAI Hackathon.
 
+<img width="1512" height="869" alt="image" src="https://github.com/user-attachments/assets/e11bee29-3c0a-437d-8adf-942d696fba15" />
+
+
 ## What It Does
 
 Grokipedia generates AI-written encyclopedia articles with citations, but how do you know if those citations actually support the claims? This app solves that by:
