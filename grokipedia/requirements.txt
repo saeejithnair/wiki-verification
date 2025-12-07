@@ -1,0 +1,8 @@
+flask
+requests
+markdown
+beautifulsoup4
+xai-sdk
+pydantic
+python-dotenv
+supabase

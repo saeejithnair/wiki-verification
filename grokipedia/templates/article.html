@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - Grokipedia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-sidebar: #0d0d0d;
+            --bg-card: rgba(38, 38, 38, 0.6);
+            --bg-input: rgba(26, 26, 26, 0.8);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-primary: #e8e8e8;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --text-muted: rgba(255, 255, 255, 0.4);
+            --link-color: #7cb3f0;
+            --accent: rgba(255, 255, 255, 0.08);
+            --citation-color: #7cb3f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 12px 24px;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .logo {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .logo-version {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .search-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0 12px;
+            transition: border-color 0.2s;
+        }
+
+        .search-wrapper:focus-within {
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .search-icon {
+            color: var(--text-muted);
+            margin-right: 8px;
+        }
+
+        .search-icon svg {
+            width: 16px;
+            height: 16px;
+            display: block;
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            padding: 10px 0;
+            outline: none;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-shortcut {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: system-ui;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .header-btn:hover {
+            background: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .header-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .login-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        /* Layout */
+        .layout {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-color);
+            padding: 24px;
+            position: sticky;
+            top: 60px;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+
+        .sidebar-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-nav li {
+            margin-bottom: 4px;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 6px 12px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .sidebar-nav a:hover {
+            background: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .sidebar-nav a.active {
+            background: rgba(124, 179, 240, 0.1);
+            color: var(--link-color);
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            padding: 32px 48px;
+        }
+
+        /* Fact check badge */
+        .fact-check-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: transparent !important;
+            background-color: transparent !important;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            margin-bottom: 16px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            box-shadow: none !important;
+        }
+
+        .fact-check-badge * {
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        .fact-check-badge svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0.7;
+            fill: none;
+            stroke: currentColor;
+        }
+
+        /* Article styles */
+        /* Aggressive reset for any inherited styles from scraped content */
+        .article *:not(.citation):not(.citation *) {
+            background: transparent !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+
+        /* Reset specific problematic inline styles */
+        .article [style*="background"] {
+            background: transparent !important;
+        }
+
+        .article h1 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 2.75rem;
+            font-weight: 400;
+            font-style: italic;
+            margin-bottom: 24px;
+            line-height: 1.2;
+            color: var(--text-primary);
+        }
+
+        .article h1 .external-link-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 12px;
+            color: var(--text-muted);
+            opacity: 0.4;
+            vertical-align: middle;
+            background: transparent !important;
+            border: none !important;
+            padding: 0;
+            text-decoration: none;
+        }
+
+        .article h1 .external-link-icon:hover {
+            opacity: 0.7;
+            background: transparent !important;
+        }
+
+        .article h1 .external-link-icon svg {
+            width: 22px;
+            height: 22px;
+            background: transparent !important;
+            fill: none;
+            stroke: currentColor;
+        }
+
+        .article h2 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.75rem;
+            font-weight: 500;
+            margin: 2.5rem 0 1rem;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .article h3 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.35rem;
+            font-weight: 500;
+            margin: 2rem 0 0.75rem;
+            color: var(--text-primary);
+        }
+
+        .article h4, .article h5, .article h6 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .article p {
+            margin-bottom: 1.25rem;
+            color: var(--text-secondary);
+        }
+
+        .article a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+
+        .article a:hover {
+            text-decoration: underline;
+        }
+
+        .article ul, .article ol {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .article li {
+            margin-bottom: 0.5rem;
+        }
+
+        .article blockquote {
+            border-left: 3px solid var(--link-color);
+            padding-left: 1rem;
+            margin: 1.5rem 0;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .article code {
+            background: var(--accent);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: 0.875em;
+        }
+
+        .article pre {
+            background: var(--bg-secondary);
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .article pre code {
+            background: none;
+            padding: 0;
+        }
+
+        /* Citation styles */
+        .citation {
+            color: var(--citation-color);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.8em;
+            vertical-align: super;
+            transition: color 0.2s;
+        }
+
+        .citation:hover {
+            color: #a8cff5;
+        }
+
+        /* Citation Peek - Minimal hover tooltip */
+        .citation-peek {
+            position: fixed;
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 6px 10px;
+            z-index: 1000;
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.3),
+                0 8px 24px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(4px);
+            pointer-events: none;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        .citation-peek.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .citation-peek .peek-source {
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            max-width: 280px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .citation-peek .peek-icon {
+            width: 12px;
+            height: 12px;
+            opacity: 0.5;
+            flex-shrink: 0;
+        }
+
+        /* Citation Card - Click to open */
+        .citation-card {
+            position: fixed;
+            background: rgba(28, 28, 30, 0.92);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            width: 320px;
+            z-index: 1001;
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.2),
+                0 16px 48px rgba(0, 0, 0, 0.4),
+                inset 0 0.5px 0 rgba(255, 255, 255, 0.05);
+            opacity: 0;
+            transform: scale(0.96) translateY(8px);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .citation-card.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: auto;
+        }
+
+        .citation-card .card-header {
+            padding: 14px 16px 12px;
+        }
+
+        .citation-card .card-title {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-decoration: none;
+            line-height: 1.35;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .citation-card .card-title:hover {
+            color: var(--link-color);
+        }
+
+        .citation-card .card-domain {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .citation-card .card-domain svg {
+            width: 10px;
+            height: 10px;
+            opacity: 0.6;
+        }
+
+        /* Toggle controls */
+        .citation-card .card-controls {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 14px;
+        }
+
+        .citation-card .toggle-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .citation-card .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .citation-card .toggle-btn.active {
+            background: rgba(124, 179, 240, 0.15);
+            border-color: rgba(124, 179, 240, 0.3);
+            color: var(--link-color);
+        }
+
+        .citation-card .toggle-btn .btn-icon {
+            font-size: 0.85rem;
+        }
+
+        /* Expandable sections */
+        .citation-card .card-section {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .citation-card .card-section.expanded {
+            max-height: 200px;
+        }
+
+        .citation-card .section-inner {
+            padding: 0 16px 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .citation-card .section-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin: 12px 0 8px;
+        }
+
+        .citation-card .section-content {
+            font-size: 0.82rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+
+        .citation-card .section-content.context-text {
+            font-style: italic;
+            color: var(--text-primary);
+        }
+
+        /* Loading skeleton */
+        .citation-card .loading-skeleton {
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0.04) 25%,
+                rgba(255, 255, 255, 0.08) 50%,
+                rgba(255, 255, 255, 0.04) 75%
+            );
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 4px;
+            height: 14px;
+            width: 100%;
+        }
+
+        .citation-card .loading-skeleton + .loading-skeleton {
+            margin-top: 6px;
+            width: 80%;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Close button */
+        .citation-card .card-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.06);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: all 0.15s ease;
+            opacity: 0;
+        }
+
+        .citation-card:hover .card-close {
+            opacity: 1;
+        }
+
+        .citation-card .card-close:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--text-primary);
+        }
+
+        .citation-card .card-close svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* Loading indicator */
+        .citation-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: none;
+            z-index: 1000;
+            min-width: 220px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .citation-status.visible {
+            display: block;
+        }
+
+        .citation-status .progress-text {
+            margin-bottom: 8px;
+        }
+
+        .citation-status .progress {
+            color: var(--link-color);
+            font-weight: 600;
+        }
+
+        .citation-status .eta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .citation-status .progress-bar {
+            height: 4px;
+            background: var(--accent);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .citation-status .progress-bar-fill {
+            height: 100%;
+            background: var(--link-color);
+            transition: width 0.3s ease;
+        }
+
+        /* References section */
+        .references {
+            margin-top: 48px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .references h2 {
+            margin-top: 0;
+        }
+
+        .reference-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .reference-item {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+        }
+
+        .reference-number {
+            color: var(--citation-color);
+            font-weight: 600;
+            min-width: 30px;
+            font-size: 0.9rem;
+        }
+
+        .reference-content a {
+            color: var(--link-color);
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .reference-content a:hover {
+            text-decoration: underline;
+        }
+
+        .reference-description {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                padding: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .search-bar {
+                order: 3;
+                max-width: 100%;
+                width: 100%;
+            }
+            .article h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">
+                grokipedia
+                <span class="logo-version">v0.2</span>
+            </a>
+            <div class="search-bar">
+                <form id="searchForm" class="search-wrapper">
+                    <div class="search-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </div>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search...">
+                    <span class="search-shortcut">⌘K</span>
+                </form>
+            </div>
+            <div class="header-actions">
+                <a href="{{ original_url }}" target="_blank" class="header-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                    Edits History
+                </a>
+                <a href="#" class="header-btn login-btn">Login</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <nav class="sidebar-section">
+                <div class="sidebar-title">{{ title }}</div>
+                <ul class="sidebar-nav" id="tableOfContents">
+                    <!-- Generated by JS -->
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="fact-check-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="4" y1="4" x2="20" y2="20"></line>
+                </svg>
+                Fact-checked by Grok 2 weeks ago
+            </div>
+
+            <article class="article">
+                {{ content | safe }}
+            </article>
+
+            {% if citations %}
+            <section class="references">
+                <h2>References</h2>
+                <ol class="reference-list">
+                    {% for citation in citations %}
+                    <li class="reference-item">
+                        <span class="reference-number">[{{ citation.id }}]</span>
+                        <div class="reference-content">
+                            <a href="{{ citation.url }}" target="_blank">
+                                {% if citation.title %}
+                                    {{ citation.title }}
+                                {% else %}
+                                    {{ citation.url }}
+                                {% endif %}
+                            </a>
+                            {% if citation.description %}
+                            <div class="reference-description">{{ citation.description }}</div>
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ol>
+            </section>
+            {% endif %}
+        </main>
+    </div>
+
+    <!-- Minimal hover peek -->
+    <div id="citationPeek" class="citation-peek">
+        <span class="peek-source">
+            <svg class="peek-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+            <span class="peek-text"></span>
+        </span>
+    </div>
+
+    <!-- Expandable citation card -->
+    <div id="citationCard" class="citation-card">
+        <button class="card-close" aria-label="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+        <div class="card-header">
+            <a class="card-title" href="" target="_blank"></a>
+            <span class="card-domain">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                    <polyline points="15 3 21 3 21 9"></polyline>
+                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+                <span class="domain-text"></span>
+            </span>
+        </div>
+        <div class="card-controls">
+            <button class="toggle-btn" data-section="context">
+                <span class="btn-icon">📖</span> Context
+            </button>
+            <button class="toggle-btn" data-section="summary">
+                <span class="btn-icon">💡</span> Insight
+            </button>
+        </div>
+        <div class="card-section" data-section="context">
+            <div class="section-inner">
+                <div class="section-label">From the source</div>
+                <div class="section-content context-text"></div>
+            </div>
+        </div>
+        <div class="card-section" data-section="summary">
+            <div class="section-inner">
+                <div class="section-label">Why it matters</div>
+                <div class="section-content summary-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="citationStatus" class="citation-status">
+        <div class="progress-text">
+            <span class="progress">0</span> / <span class="total">0</span> citations loaded
+        </div>
+        <div class="eta"></div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <script>
+        // Generate table of contents
+        function generateTOC() {
+            const article = document.querySelector('.article');
+            const headings = article.querySelectorAll('h2, h3');
+            const toc = document.getElementById('tableOfContents');
+
+            headings.forEach((heading, index) => {
+                const id = 'section-' + index;
+                heading.id = id;
+
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = '#' + id;
+                a.textContent = heading.textContent;
+                if (heading.tagName === 'H3') {
+                    a.style.paddingLeft = '24px';
+                    a.style.fontSize = '0.8rem';
+                }
+                li.appendChild(a);
+                toc.appendChild(li);
+            });
+        }
+        generateTOC();
+
+        // Search form
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            const match = query.match(/grokipedia\.com\/page\/([^/?]+)/);
+            if (match) {
+                window.location.href = '/page/' + match[1];
+            } else {
+                const pageName = query.replace(/\s+/g, '_');
+                window.location.href = '/page/' + encodeURIComponent(pageName);
+            }
+        });
+
+        // Keyboard shortcut for search
+        document.addEventListener('keydown', (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+        });
+
+        // Citation data store
+        const citationData = new Map();
+        const peek = document.getElementById('citationPeek');
+        const card = document.getElementById('citationCard');
+        const statusEl = document.getElementById('citationStatus');
+        const citations = document.querySelectorAll('.citation');
+
+        let peekTimeout = null;
+        let activeCitation = null;
+        let cardVisible = false;
+
+        // Extract domain from URL
+        function getDomain(url) {
+            try {
+                const parsed = new URL(url);
+                return parsed.hostname.replace('www.', '');
+            } catch {
+                return url.slice(0, 30);
+            }
+        }
+
+        // Get short source name for peek
+        function getShortName(title, url) {
+            if (title && title.length < 50) return title;
+            if (title) {
+                // Take first part before common separators
+                const parts = title.split(/\s*[|\-–—:]\s*/);
+                if (parts[0].length < 50) return parts[0];
+                return parts[0].slice(0, 47) + '...';
+            }
+            return getDomain(url);
+        }
+
+        // Extract context with [X] marker showing exactly where citation appears
+        // Strategy: Include background context + mark the specific claim with [X]
+        function getClaimContext(citation) {
+            let parent = citation.parentElement;
+            while (parent && !['P', 'LI', 'DIV', 'TD'].includes(parent.tagName)) {
+                parent = parent.parentElement;
+            }
+            if (!parent) return '';
+
+            const citationId = citation.dataset.id;
+
+            // Clone parent and replace THIS citation with [X] marker
+            const clone = parent.cloneNode(true);
+            const citationInClone = clone.querySelector(`[data-id="${citationId}"]`);
+            if (citationInClone) {
+                citationInClone.textContent = `[X]`;
+            }
+
+            // Also replace other citations with their numbers for clarity
+            clone.querySelectorAll('.citation').forEach(c => {
+                if (c.dataset.id !== citationId) {
+                    c.textContent = `[${c.dataset.id}]`;
+                }
+            });
+
+            const fullText = clone.textContent.replace(/\s+/g, ' ').trim();
+            const markerPos = fullText.indexOf('[X]');
+
+            if (markerPos === -1) {
+                return fullText.slice(0, 400);
+            }
+
+            // Get text before [X] (background + claim) and a bit after
+            const beforeMarker = fullText.slice(0, markerPos);
+            const afterMarker = fullText.slice(markerPos);
+
+            // Include up to 350 chars before [X] for background context
+            // Plus [X] and ~50 chars after to complete the thought
+            const contextBefore = beforeMarker.slice(-350);
+            const contextAfter = afterMarker.slice(0, 60); // [X] + some text
+
+            // Add ellipsis if we truncated the beginning
+            const prefix = beforeMarker.length > 350 ? '...' : '';
+
+            return (prefix + contextBefore + contextAfter).trim();
+        }
+
+        // Build unique key for a citation instance
+        function getCitationKey(citation) {
+            const context = getClaimContext(citation);
+            return `${citation.dataset.id}:${citation.dataset.url}:${context}`;
+        }
+
+        // Update status indicator
+        function updateStatus(processed, total, eta) {
+            statusEl.querySelector('.progress').textContent = processed;
+            statusEl.querySelector('.total').textContent = total;
+
+            const percent = total > 0 ? (processed / total) * 100 : 0;
+            statusEl.querySelector('.progress-bar-fill').style.width = `${percent}%`;
+
+            if (eta !== undefined && eta > 0) {
+                const mins = Math.floor(eta / 60);
+                const secs = Math.round(eta % 60);
+                statusEl.querySelector('.eta').textContent = mins > 0
+                    ? `~${mins}m ${secs}s remaining`
+                    : `~${secs}s remaining`;
+            } else if (processed === total) {
+                statusEl.querySelector('.eta').textContent = 'Complete!';
+            }
+
+            if (total > 0 && processed < total) {
+                statusEl.classList.add('visible');
+            } else if (processed === total) {
+                setTimeout(() => statusEl.classList.remove('visible'), 3000);
+            }
+        }
+
+        // Collect all citation data
+        function collectCitationData() {
+            const data = [];
+            const seen = new Set();
+
+            citations.forEach((citation) => {
+                const key = getCitationKey(citation);
+                if (seen.has(key)) return;
+                seen.add(key);
+
+                data.push({
+                    id: citation.dataset.id,
+                    key: key,
+                    url: citation.dataset.url || '',
+                    title: citation.dataset.title || '',
+                    context: getClaimContext(citation)
+                });
+            });
+            return data;
+        }
+
+        // Stream citations using POST + fetch with ReadableStream
+        async function streamCitations(citationsList) {
+            const total = citationsList.length;
+            let processed = 0;
+
+            updateStatus(0, total, null);
+
+            try {
+                const response = await fetch('/api/citations/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ citations: citationsList })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+
+                    const lines = buffer.split('\n\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+
+                                if (data.done) {
+                                    updateStatus(data.processed || total, total, 0);
+                                    continue;
+                                }
+
+                                citationsList.filter(c => c.id === data.id).forEach(c => {
+                                    citationData.set(c.key, {
+                                        context: data.context,
+                                        summary: data.summary,
+                                        cached: data.cached,
+                                        loaded: true
+                                    });
+                                });
+
+                                if (data.processed !== undefined) {
+                                    processed = data.processed;
+                                    updateStatus(processed, data.total || total, data.eta);
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE data:', e, line);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Stream error:', error);
+            }
+        }
+
+        // Start loading on page load
+        async function loadCitations() {
+            const citationsList = collectCitationData();
+            if (citationsList.length === 0) return;
+            await streamCitations(citationsList);
+        }
+
+        loadCitations();
+
+        // ============ PEEK (Hover) ============
+        function showPeek(citation, x, y) {
+            if (cardVisible) return; // Don't show peek if card is open
+
+            const title = citation.dataset.title || '';
+            const url = citation.dataset.url || '';
+            const shortName = getShortName(title, url);
+
+            peek.querySelector('.peek-text').textContent = shortName;
+
+            // Position near the citation
+            const rect = citation.getBoundingClientRect();
+            let left = rect.left;
+            let top = rect.bottom + 6;
+
+            // Keep within viewport
+            if (left + 280 > window.innerWidth) {
+                left = window.innerWidth - 290;
+            }
+            if (top + 40 > window.innerHeight) {
+                top = rect.top - 36;
+            }
+
+            peek.style.left = left + 'px';
+            peek.style.top = top + 'px';
+            peek.classList.add('visible');
+        }
+
+        function hidePeek() {
+            peek.classList.remove('visible');
+        }
+
+        // ============ CARD (Click) ============
+        function showCard(citation) {
+            activeCitation = citation;
+            cardVisible = true;
+            hidePeek();
+
+            const title = citation.dataset.title || 'Untitled Source';
+            const url = citation.dataset.url || '';
+            const key = getCitationKey(citation);
+
+            // Set header content
+            card.querySelector('.card-title').textContent = title;
+            card.querySelector('.card-title').href = url;
+            card.querySelector('.domain-text').textContent = getDomain(url);
+
+            // Reset toggle states
+            card.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            card.querySelectorAll('.card-section').forEach(section => section.classList.remove('expanded'));
+
+            // Position the card
+            const rect = citation.getBoundingClientRect();
+            let left = rect.left;
+            let top = rect.bottom + 10;
+
+            // Keep within viewport
+            if (left + 320 > window.innerWidth) {
+                left = window.innerWidth - 340;
+            }
+            if (left < 20) left = 20;
+
+            if (top + 300 > window.innerHeight) {
+                top = rect.top - 200;
+            }
+
+            card.style.left = left + 'px';
+            card.style.top = top + 'px';
+
+            // Load content
+            const data = citationData.get(key);
+            updateCardContent(data, key);
+
+            card.classList.add('visible');
+        }
+
+        function updateCardContent(data, key) {
+            const contextEl = card.querySelector('.context-text');
+            const summaryEl = card.querySelector('.summary-text');
+
+            if (data && data.loaded) {
+                contextEl.textContent = data.context;
+                contextEl.classList.remove('loading-skeleton');
+                summaryEl.textContent = data.summary;
+                summaryEl.classList.remove('loading-skeleton');
+            } else {
+                // Show loading skeleton
+                contextEl.innerHTML = '<div class="loading-skeleton"></div><div class="loading-skeleton"></div>';
+                summaryEl.innerHTML = '<div class="loading-skeleton"></div><div class="loading-skeleton"></div>';
+
+                // Poll for data
+                const pollInterval = setInterval(() => {
+                    const newData = citationData.get(key);
+                    if (newData && newData.loaded) {
+                        clearInterval(pollInterval);
+                        contextEl.textContent = newData.context;
+                        summaryEl.textContent = newData.summary;
+                    }
+                }, 300);
+
+                setTimeout(() => clearInterval(pollInterval), 120000);
+            }
+        }
+
+        function hideCard() {
+            card.classList.remove('visible');
+            cardVisible = false;
+            activeCitation = null;
+        }
+
+        // Update card position to follow citation on scroll
+        function updateCardPosition() {
+            if (!cardVisible || !activeCitation) return;
+
+            const rect = activeCitation.getBoundingClientRect();
+
+            // Check if citation is still in view
+            if (rect.bottom < 0 || rect.top > window.innerHeight) {
+                hideCard(); // Citation scrolled out of view
+                return;
+            }
+
+            let left = rect.left;
+            let top = rect.bottom + 10;
+
+            // Keep within viewport
+            if (left + 320 > window.innerWidth) {
+                left = window.innerWidth - 340;
+            }
+            if (left < 20) left = 20;
+
+            // If card would go below viewport, position above
+            if (top + 200 > window.innerHeight) {
+                top = rect.top - 10;
+                // Position card above, accounting for its height
+                const cardHeight = card.offsetHeight || 150;
+                top = top - cardHeight;
+            }
+
+            card.style.left = left + 'px';
+            card.style.top = top + 'px';
+        }
+
+        function toggleSection(sectionName) {
+            const btn = card.querySelector(`.toggle-btn[data-section="${sectionName}"]`);
+            const section = card.querySelector(`.card-section[data-section="${sectionName}"]`);
+
+            btn.classList.toggle('active');
+            section.classList.toggle('expanded');
+        }
+
+        // ============ Event Listeners ============
+
+        // Citation hover → peek
+        citations.forEach(citation => {
+            citation.addEventListener('mouseenter', (e) => {
+                if (peekTimeout) clearTimeout(peekTimeout);
+                peekTimeout = setTimeout(() => {
+                    showPeek(citation, e.clientX, e.clientY);
+                }, 150); // Small delay for intentional hover
+            });
+
+            citation.addEventListener('mouseleave', () => {
+                if (peekTimeout) clearTimeout(peekTimeout);
+                hidePeek();
+            });
+
+            // Citation click → card
+            citation.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (cardVisible && activeCitation === citation) {
+                    hideCard(); // Toggle off if clicking same citation
+                } else {
+                    showCard(citation);
+                }
+            });
+        });
+
+        // Toggle buttons
+        card.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleSection(btn.dataset.section);
+            });
+        });
+
+        // Close button
+        card.querySelector('.card-close').addEventListener('click', (e) => {
+            e.stopPropagation();
+            hideCard();
+        });
+
+        // Click outside to close
+        document.addEventListener('click', (e) => {
+            if (cardVisible && !card.contains(e.target) && !e.target.closest('.citation')) {
+                hideCard();
+            }
+        });
+
+        // ESC to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && cardVisible) {
+                hideCard();
+            }
+        });
+
+        // Keep card open when hovering over it
+        card.addEventListener('mouseenter', () => {
+            if (peekTimeout) clearTimeout(peekTimeout);
+        });
+
+        // Scroll handler - anchor card to citation
+        let scrollTicking = false;
+        window.addEventListener('scroll', () => {
+            if (!scrollTicking && cardVisible) {
+                requestAnimationFrame(() => {
+                    updateCardPosition();
+                    scrollTicking = false;
+                });
+                scrollTicking = true;
+            }
+        }, { passive: true });
+
+        // Also handle resize
+        window.addEventListener('resize', () => {
+            if (cardVisible) {
+                updateCardPosition();
+            }
+        }, { passive: true });
+    </script>
+</body>
+</html>
