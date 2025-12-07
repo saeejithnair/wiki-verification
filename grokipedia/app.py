@@ -182,7 +182,7 @@ def get_cached_citation(source_url: str, claim_context: str) -> dict | None:
     """Check Supabase for cached citation analysis."""
     try:
         def _query():
-            return supabase.table("citation_cache").select("relevant_quote, summary").eq(
+            return supabase.table("citation_cache").select("relevant_quote, summary, title").eq(
                 "source_url", source_url
             ).eq(
                 "claim_context", claim_context
@@ -191,6 +191,7 @@ def get_cached_citation(source_url: str, claim_context: str) -> dict | None:
         result = supabase_with_retry(_query)
         if result.data:
             return {
+                "title": result.data[0].get("title", ""),
                 "context": result.data[0]["relevant_quote"],
                 "summary": result.data[0]["summary"],
             }
@@ -201,7 +202,7 @@ def get_cached_citation(source_url: str, claim_context: str) -> dict | None:
     return None
 
 
-def cache_citation(source_url: str, claim_context: str, relevant_quote: str, summary: str):
+def cache_citation(source_url: str, claim_context: str, relevant_quote: str, summary: str, title: str = ""):
     """Store citation analysis in Supabase."""
     try:
         def _upsert():
@@ -210,6 +211,7 @@ def cache_citation(source_url: str, claim_context: str, relevant_quote: str, sum
                 "claim_context": claim_context,
                 "relevant_quote": relevant_quote,
                 "summary": summary,
+                "title": title,
             }).execute()
 
         supabase_with_retry(_upsert)
@@ -311,7 +313,80 @@ def extract_rendered_article(html: str, citations: list, page_name: str = "") ->
     if not article:
         return ""
 
+    # Build citation lookup from the JSON data first
     citation_lookup = {c["id"]: c for c in citations}
+
+    # IMPORTANT: Extract correct URLs from embedded references list
+    # Grokipedia's citations JSON has mismatched data, but the embedded <ol>
+    # references list at the bottom is correctly ordered by position
+    references_section = article.find("div", id="references")
+    if references_section:
+        ref_ol = references_section.find("ol")
+        if ref_ol:
+            for idx, li in enumerate(ref_ol.find_all("li", recursive=False), start=1):
+                link = li.find("a", href=True)
+                if link:
+                    correct_url = link.get("href", "")
+                    citation_id = str(idx)
+                    # Update or create citation with correct URL
+                    if citation_id in citation_lookup:
+                        old_url = citation_lookup[citation_id].get("url", "")
+                        # Fix the URL but keep existing title/description
+                        # (slightly mismatched metadata is better than "Untitled Source")
+                        if old_url != correct_url:
+                            citation_lookup[citation_id]["url"] = correct_url
+                    else:
+                        citation_lookup[citation_id] = {
+                            "id": citation_id,
+                            "url": correct_url,
+                            "title": "",
+                            "description": ""
+                        }
+        # Remove the embedded references section - we'll render our own
+        references_section.decompose()
+
+    # Fix KaTeX math rendering that corrupts currency values like "$200–$450"
+    # KaTeX interprets $ as LaTeX math delimiters, creating MathML gibberish
+    # The annotation often contains broken citations like [](url) that need fixing
+    def fix_katex_text(text):
+        """Fix broken citations in KaTeX annotation text."""
+        # Build URL to citation number mapping
+        url_to_id = {c.get("url", ""): c.get("id", "") for c in citations if c.get("url")}
+
+        # Replace [](url) patterns with proper [N] citations
+        def replace_broken_citation(match):
+            url = match.group(1)
+            citation_id = url_to_id.get(url, "")
+            if citation_id:
+                return f"[{citation_id}]"
+            return ""  # Remove if we can't find the citation
+
+        fixed = re.sub(r'\[\]\(([^)]+)\)', replace_broken_citation, text)
+        return fixed
+
+    for katex_span in article.find_all("span", class_="katex"):
+        annotation = katex_span.find("annotation")
+        if annotation:
+            original_text = annotation.get_text()
+            fixed_text = fix_katex_text(original_text)
+            # Only add $ prefix if it looks like a currency value
+            if re.match(r'^\d', fixed_text):
+                fixed_text = f"${fixed_text}"
+            katex_span.replace_with(fixed_text)
+        else:
+            katex_span.decompose()
+
+    # Also remove any standalone math elements
+    for math_elem in article.find_all("math"):
+        annotation = math_elem.find("annotation")
+        if annotation:
+            original_text = annotation.get_text()
+            fixed_text = fix_katex_text(original_text)
+            if re.match(r'^\d', fixed_text):
+                fixed_text = f"${fixed_text}"
+            math_elem.replace_with(fixed_text)
+        else:
+            math_elem.decompose()
 
     # Remove Grokipedia-specific UI elements we don't want
     # 1. Remove any "fact-checked" badges/buttons from Grokipedia
@@ -456,6 +531,7 @@ def process_markdown_for_display(md_content: str, citations: list) -> str:
 
 class CitationAnalysis(BaseModel):
     """Structured output for citation analysis."""
+    page_title: str  # The actual title of the source page/article
     relevant_quote: str  # The specific quote from the source that verifies the claim before [X]
     summary: str  # One sentence: "This source confirms [specific claim] by stating [key evidence]"
 
@@ -505,14 +581,16 @@ Here is the text (other citations shown as [1], [2], etc. — IGNORE those, focu
 "{claim_context}"
 
 The marker [X] appears immediately AFTER the specific fact it supports. Your job:
-1. Identify the specific claim RIGHT BEFORE [X] (not claims near other citation numbers)
-2. Search and read the source: {source_url}
-3. Find a quote that verifies the claim before [X]
-4. Explain how the source confirms that specific claim
+1. Search and read the source: {source_url}
+2. Note the actual page/article title
+3. Identify the specific claim RIGHT BEFORE [X] (not claims near other citation numbers)
+4. Find a quote that verifies the claim before [X]
+5. Explain how the source confirms that specific claim
 
-Source: {source_title or source_url}
+Source URL: {source_url}
 
 CRITICAL:
+- Return the ACTUAL page title from the source (not a made-up title)
 - ONLY verify the claim immediately before [X], ignore claims near [1], [2], etc.
 - Be specific: "X failed due to Y" → find evidence of failure and reasons
 - Don't summarize the general topic — verify the EXACT fact before [X]"""
@@ -523,11 +601,13 @@ CRITICAL:
         response = await chat.sample()
         analysis = CitationAnalysis.model_validate_json(response.content)
         return {
+            "title": analysis.page_title,
             "relevant_quote": analysis.relevant_quote,
             "summary": analysis.summary,
         }
     except Exception as e:
         return {
+            "title": "",
             "relevant_quote": f"Could not extract quote: {str(e)}",
             "summary": "Unable to analyze this citation.",
         }
@@ -620,6 +700,7 @@ def api_citation(citation_id: str):
     if cached:
         return jsonify({
             "id": citation_id,
+            "title": cached.get("title", ""),
             "context": cached["context"],
             "summary": cached["summary"],
             "cached": True,
@@ -631,11 +712,13 @@ def api_citation(citation_id: str):
             source_url,
             claim_context,
             analysis["relevant_quote"],
-            analysis["summary"]
+            analysis["summary"],
+            analysis.get("title", "")
         )
 
         return jsonify({
             "id": citation_id,
+            "title": analysis.get("title", ""),
             "context": analysis["relevant_quote"],
             "summary": analysis["summary"],
             "cached": False,
@@ -643,9 +726,40 @@ def api_citation(citation_id: str):
     except Exception as e:
         return jsonify({
             "id": citation_id,
+            "title": "",
             "context": f"Error: {str(e)}",
             "summary": "Failed to analyze citation",
         })
+
+
+@app.route("/api/citation/feedback", methods=["POST"])
+def api_citation_feedback():
+    """Store user feedback on citation quality."""
+    data = request.get_json()
+    citation_id = data.get("citation_id", "")
+    source_url = data.get("url", "")
+    vote = data.get("vote")  # 'up', 'down', or null
+    page = data.get("page", "")
+
+    if not source_url:
+        return jsonify({"error": "Missing URL"}), 400
+
+    try:
+        def _upsert():
+            return supabase.table("citation_feedback").upsert({
+                "source_url": source_url,
+                "citation_id": citation_id,
+                "page_path": page,
+                "vote": vote,
+                "updated_at": "now()",
+            }).execute()
+
+        supabase_with_retry(_upsert)
+        return jsonify({"success": True})
+    except Exception as e:
+        # Log but don't fail - feedback is optional
+        print(f"Feedback store error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/api/citations/batch", methods=["POST"])
@@ -781,3 +895,4 @@ def api_citations_stream():
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001, threaded=True)
+

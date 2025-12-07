@@ -548,11 +548,30 @@
         .citation-card .card-section {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .citation-card .card-section.expanded {
-            max-height: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Custom scrollbar for sections */
+        .citation-card .card-section::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .citation-card .card-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .citation-card .card-section::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        .citation-card .card-section::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .citation-card .section-inner {
@@ -602,6 +621,142 @@
         @keyframes shimmer {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
+        }
+
+        /* Citation Feedback */
+        .citation-card .card-feedback {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .citation-card .card-feedback.visible {
+            opacity: 1;
+            max-height: 60px;
+        }
+
+        .citation-card .feedback-prompt {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            letter-spacing: 0.01em;
+            transition: opacity 0.2s ease;
+        }
+
+        .citation-card .feedback-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .citation-card .feedback-btn {
+            width: 34px;
+            height: 34px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .citation-card .feedback-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: currentColor;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            border-radius: inherit;
+        }
+
+        .citation-card .feedback-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            transform: translateY(-1px);
+        }
+
+        .citation-card .feedback-btn:active {
+            transform: scale(0.92);
+        }
+
+        .citation-card .feedback-btn svg {
+            width: 16px;
+            height: 16px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.2s ease;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.8;
+        }
+
+        /* Upvote selected state */
+        .citation-card .feedback-btn.voted.upvote {
+            background: rgba(52, 199, 89, 0.12);
+            border-color: rgba(52, 199, 89, 0.25);
+            color: #34c759;
+        }
+
+        .citation-card .feedback-btn.voted.upvote svg {
+            fill: currentColor;
+            stroke: currentColor;
+        }
+
+        /* Downvote selected state */
+        .citation-card .feedback-btn.voted.downvote {
+            background: rgba(255, 69, 58, 0.12);
+            border-color: rgba(255, 69, 58, 0.25);
+            color: #ff453a;
+        }
+
+        .citation-card .feedback-btn.voted.downvote svg {
+            fill: currentColor;
+            stroke: currentColor;
+        }
+
+        /* Dimmed state for non-selected button after voting */
+        .citation-card .feedback-btn.dimmed {
+            opacity: 0.35;
+            pointer-events: none;
+            transform: scale(0.95);
+        }
+
+        /* Thank you message */
+        .citation-card .feedback-thanks {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            opacity: 0;
+            transform: translateX(8px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            white-space: nowrap;
+        }
+
+        .citation-card .feedback-thanks.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Pulse animation on vote */
+        @keyframes votePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .citation-card .feedback-btn.pulse {
+            animation: votePulse 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         /* Close button */
@@ -889,17 +1044,26 @@
                 <div class="section-content summary-text"></div>
             </div>
         </div>
+        <div class="card-feedback">
+            <span class="feedback-prompt">Helpful?</span>
+            <div class="feedback-actions">
+                <span class="feedback-thanks">Thanks!</span>
+                <button class="feedback-btn upvote" data-vote="up" aria-label="Helpful">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                    </svg>
+                </button>
+                <button class="feedback-btn downvote" data-vote="down" aria-label="Not helpful">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
     </div>
 
-    <div id="citationStatus" class="citation-status">
-        <div class="progress-text">
-            <span class="progress">0</span> / <span class="total">0</span> citations loaded
-        </div>
-        <div class="eta"></div>
-        <div class="progress-bar">
-            <div class="progress-bar-fill" style="width: 0%"></div>
-        </div>
-    </div>
+    <!-- Status indicator (hidden - using just-in-time loading now) -->
+    <div id="citationStatus" class="citation-status" style="display: none;"></div>
 
     <script>
         // Generate table of contents
@@ -953,11 +1117,12 @@
         });
 
         // Citation data store
-        const citationData = new Map();
+        const citationData = new Map();      // Cache for loaded citations
+        const pendingFetches = new Set();    // Track in-flight requests
         const peek = document.getElementById('citationPeek');
         const card = document.getElementById('citationCard');
-        const statusEl = document.getElementById('citationStatus');
         const citations = document.querySelectorAll('.citation');
+        const citationsArray = Array.from(citations);  // For finding prev/next
 
         let peekTimeout = null;
         let activeCitation = null;
@@ -1038,121 +1203,84 @@
             return `${citation.dataset.id}:${citation.dataset.url}:${context}`;
         }
 
-        // Update status indicator
-        function updateStatus(processed, total, eta) {
-            statusEl.querySelector('.progress').textContent = processed;
-            statusEl.querySelector('.total').textContent = total;
+        // Fetch a single citation's analysis (just-in-time)
+        async function fetchCitationData(citation) {
+            const key = getCitationKey(citation);
 
-            const percent = total > 0 ? (processed / total) * 100 : 0;
-            statusEl.querySelector('.progress-bar-fill').style.width = `${percent}%`;
-
-            if (eta !== undefined && eta > 0) {
-                const mins = Math.floor(eta / 60);
-                const secs = Math.round(eta % 60);
-                statusEl.querySelector('.eta').textContent = mins > 0
-                    ? `~${mins}m ${secs}s remaining`
-                    : `~${secs}s remaining`;
-            } else if (processed === total) {
-                statusEl.querySelector('.eta').textContent = 'Complete!';
+            // Already cached or being fetched
+            if (citationData.has(key) || pendingFetches.has(key)) {
+                return citationData.get(key);
             }
 
-            if (total > 0 && processed < total) {
-                statusEl.classList.add('visible');
-            } else if (processed === total) {
-                setTimeout(() => statusEl.classList.remove('visible'), 3000);
-            }
-        }
+            pendingFetches.add(key);
 
-        // Collect all citation data
-        function collectCitationData() {
-            const data = [];
-            const seen = new Set();
-
-            citations.forEach((citation) => {
-                const key = getCitationKey(citation);
-                if (seen.has(key)) return;
-                seen.add(key);
-
-                data.push({
-                    id: citation.dataset.id,
-                    key: key,
-                    url: citation.dataset.url || '',
-                    title: citation.dataset.title || '',
-                    context: getClaimContext(citation)
-                });
+            const params = new URLSearchParams({
+                url: citation.dataset.url || '',
+                title: citation.dataset.title || '',
+                context: getClaimContext(citation)
             });
-            return data;
-        }
-
-        // Stream citations using POST + fetch with ReadableStream
-        async function streamCitations(citationsList) {
-            const total = citationsList.length;
-            let processed = 0;
-
-            updateStatus(0, total, null);
 
             try {
-                const response = await fetch('/api/citations/stream', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ citations: citationsList })
-                });
+                const response = await fetch(`/api/citation/${citation.dataset.id}?${params}`);
+                const data = await response.json();
 
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = '';
+                const result = {
+                    title: data.title || '',
+                    context: data.context,
+                    summary: data.summary,
+                    cached: data.cached,
+                    loaded: true
+                };
 
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
+                citationData.set(key, result);
 
-                    buffer += decoder.decode(value, { stream: true });
-
-                    const lines = buffer.split('\n\n');
-                    buffer = lines.pop() || '';
-
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            try {
-                                const data = JSON.parse(line.slice(6));
-
-                                if (data.done) {
-                                    updateStatus(data.processed || total, total, 0);
-                                    continue;
-                                }
-
-                                citationsList.filter(c => c.id === data.id).forEach(c => {
-                                    citationData.set(c.key, {
-                                        context: data.context,
-                                        summary: data.summary,
-                                        cached: data.cached,
-                                        loaded: true
-                                    });
-                                });
-
-                                if (data.processed !== undefined) {
-                                    processed = data.processed;
-                                    updateStatus(processed, data.total || total, data.eta);
-                                }
-                            } catch (e) {
-                                console.error('Error parsing SSE data:', e, line);
-                            }
-                        }
-                    }
+                // Update the card title if this is the active citation and API returned a title
+                if (activeCitation === citation && data.title) {
+                    card.querySelector('.card-title').textContent = data.title;
                 }
+
+                return result;
             } catch (error) {
-                console.error('Stream error:', error);
+                console.error('Citation fetch error:', error);
+                return null;
+            } finally {
+                pendingFetches.delete(key);
             }
         }
 
-        // Start loading on page load
-        async function loadCitations() {
-            const citationsList = collectCitationData();
-            if (citationsList.length === 0) return;
-            await streamCitations(citationsList);
+        // Prefetch adjacent citations (prev and next in DOM order)
+        function prefetchAdjacentCitations(citation) {
+            const index = citationsArray.indexOf(citation);
+            if (index === -1) return;
+
+            // Prefetch previous and next citations in parallel
+            const toFetch = [];
+            if (index > 0) toFetch.push(citationsArray[index - 1]);
+            if (index < citationsArray.length - 1) toFetch.push(citationsArray[index + 1]);
+
+            // Fire and forget - don't await
+            toFetch.forEach(c => {
+                const key = getCitationKey(c);
+                if (!citationData.has(key) && !pendingFetches.has(key)) {
+                    fetchCitationData(c);
+                }
+            });
         }
 
-        loadCitations();
+        // Fetch citation on demand (hover triggers this)
+        async function ensureCitationLoaded(citation) {
+            const key = getCitationKey(citation);
+
+            // If not cached, fetch it
+            if (!citationData.has(key)) {
+                await fetchCitationData(citation);
+            }
+
+            // Prefetch neighbors in background
+            prefetchAdjacentCitations(citation);
+
+            return citationData.get(key);
+        }
 
         // ============ PEEK (Hover) ============
         function showPeek(citation, x, y) {
@@ -1186,15 +1314,99 @@
             peek.classList.remove('visible');
         }
 
+        // ============ FEEDBACK SYSTEM ============
+        const feedbackStore = {
+            // Get stored feedback for a citation
+            get(citationKey) {
+                try {
+                    const stored = localStorage.getItem('citation_feedback');
+                    const data = stored ? JSON.parse(stored) : {};
+                    return data[citationKey] || null;
+                } catch {
+                    return null;
+                }
+            },
+
+            // Store feedback for a citation
+            set(citationKey, vote) {
+                try {
+                    const stored = localStorage.getItem('citation_feedback');
+                    const data = stored ? JSON.parse(stored) : {};
+                    data[citationKey] = {
+                        vote,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem('citation_feedback', JSON.stringify(data));
+
+                    // Optionally send to backend (fire and forget)
+                    this.sendToBackend(citationKey, vote);
+                } catch (e) {
+                    console.warn('Could not store feedback:', e);
+                }
+            },
+
+            // Send feedback to backend (for analytics)
+            sendToBackend(citationKey, vote) {
+                // Parse the key to get citation details
+                const parts = citationKey.split(':');
+                const citationId = parts[0];
+                const url = parts.slice(1).join(':'); // URL may contain colons
+
+                fetch('/api/citation/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        citation_id: citationId,
+                        url: url,
+                        vote: vote,
+                        page: window.location.pathname
+                    })
+                }).catch(() => {}); // Silently fail - feedback is also in localStorage
+            }
+        };
+
+        // Update feedback UI based on stored vote
+        function updateFeedbackUI(vote) {
+            const upBtn = card.querySelector('.feedback-btn.upvote');
+            const downBtn = card.querySelector('.feedback-btn.downvote');
+            const thanksEl = card.querySelector('.feedback-thanks');
+
+            // Reset states
+            upBtn.classList.remove('voted', 'dimmed', 'pulse');
+            downBtn.classList.remove('voted', 'dimmed', 'pulse');
+            thanksEl.classList.remove('visible');
+
+            if (vote === 'up') {
+                upBtn.classList.add('voted');
+                downBtn.classList.add('dimmed');
+            } else if (vote === 'down') {
+                downBtn.classList.add('voted');
+                upBtn.classList.add('dimmed');
+            }
+        }
+
+        // Get a unique key for the current citation
+        function getCurrentCitationKey() {
+            if (!activeCitation) return null;
+            const id = activeCitation.dataset.id;
+            const url = activeCitation.dataset.url;
+            return `${id}:${url}`;
+        }
+
         // ============ CARD (Click) ============
         function showCard(citation) {
             activeCitation = citation;
             cardVisible = true;
             hidePeek();
 
-            const title = citation.dataset.title || 'Untitled Source';
             const url = citation.dataset.url || '';
             const key = getCitationKey(citation);
+
+            // Use cached title from API if available, otherwise fall back to data attribute or domain
+            const cachedData = citationData.get(key);
+            const title = (cachedData && cachedData.title)
+                ? cachedData.title
+                : (citation.dataset.title || getDomain(url) || 'Untitled Source');
 
             // Set header content
             card.querySelector('.card-title').textContent = title;
@@ -1204,6 +1416,13 @@
             // Reset toggle states
             card.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
             card.querySelectorAll('.card-section').forEach(section => section.classList.remove('expanded'));
+
+            // Reset and restore feedback state
+            const feedbackEl = card.querySelector('.card-feedback');
+            feedbackEl.classList.remove('visible');
+            const citationKey = `${citation.dataset.id}:${citation.dataset.url}`;
+            const savedFeedback = feedbackStore.get(citationKey);
+            updateFeedbackUI(savedFeedback ? savedFeedback.vote : null);
 
             // Position the card
             const rect = citation.getBoundingClientRect();
@@ -1307,13 +1526,16 @@
 
         // ============ Event Listeners ============
 
-        // Citation hover → peek
+        // Citation hover → peek + trigger fetch
         citations.forEach(citation => {
             citation.addEventListener('mouseenter', (e) => {
                 if (peekTimeout) clearTimeout(peekTimeout);
                 peekTimeout = setTimeout(() => {
                     showPeek(citation, e.clientX, e.clientY);
                 }, 150); // Small delay for intentional hover
+
+                // Start fetching immediately (don't wait for peek delay)
+                ensureCitationLoaded(citation);
             });
 
             citation.addEventListener('mouseleave', () => {
@@ -1339,6 +1561,62 @@
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 toggleSection(btn.dataset.section);
+
+                // Show feedback section when any section is expanded
+                const anyExpanded = card.querySelector('.card-section.expanded');
+                const feedbackEl = card.querySelector('.card-feedback');
+                if (anyExpanded) {
+                    setTimeout(() => feedbackEl.classList.add('visible'), 150);
+                } else {
+                    feedbackEl.classList.remove('visible');
+                }
+            });
+        });
+
+        // Handle feedback button clicks
+        card.querySelectorAll('.feedback-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+
+                const vote = btn.dataset.vote;
+                const citationKey = getCurrentCitationKey();
+                if (!citationKey) return;
+
+                const currentFeedback = feedbackStore.get(citationKey);
+                const upBtn = card.querySelector('.feedback-btn.upvote');
+                const downBtn = card.querySelector('.feedback-btn.downvote');
+                const thanksEl = card.querySelector('.feedback-thanks');
+
+                // If clicking the same vote, toggle it off
+                if (currentFeedback && currentFeedback.vote === vote) {
+                    feedbackStore.set(citationKey, null);
+                    updateFeedbackUI(null);
+                    return;
+                }
+
+                // Store the new vote
+                feedbackStore.set(citationKey, vote);
+
+                // Animate the clicked button
+                btn.classList.add('pulse');
+                setTimeout(() => btn.classList.remove('pulse'), 300);
+
+                // Update UI
+                if (vote === 'up') {
+                    upBtn.classList.add('voted');
+                    upBtn.classList.remove('dimmed');
+                    downBtn.classList.remove('voted');
+                    downBtn.classList.add('dimmed');
+                } else {
+                    downBtn.classList.add('voted');
+                    downBtn.classList.remove('dimmed');
+                    upBtn.classList.remove('voted');
+                    upBtn.classList.add('dimmed');
+                }
+
+                // Show thanks message
+                thanksEl.classList.add('visible');
+                setTimeout(() => thanksEl.classList.remove('visible'), 2000);
             });
         });
 
